@@ -1,2 +1,3 @@
 * linguist-vendored
-*.go linguist-vendored=true
+*.html linguist-language=Go
+*.txt linguist-language=Go
