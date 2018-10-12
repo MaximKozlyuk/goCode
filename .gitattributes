@@ -1,3 +1,4 @@
-* linguist-vendored
 *.html linguist-language=Go
 *.txt linguist-language=Go
+*.gob linguist-language=Go
+*linguist-language=Go
