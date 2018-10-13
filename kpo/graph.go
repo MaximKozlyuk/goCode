@@ -80,7 +80,7 @@ func main() {
 	grArr[0].printAdjacencyMatrix()
 
 	// исследование схождения структурного параметра альфа:
-	alphaArr := calcAfor(5, 200, 1, m)
+	alphaArr := calcAfor(50, 2000, 50, m)
 	fmt.Println("Alpha convergence research:")
 	for i := 0; i < len(alphaArr); i++ {
 		fmt.Println(alphaArr[i])
@@ -90,7 +90,7 @@ func main() {
 
 type graph struct {
 	rootNode    node
-	nodes       []node
+	nodes       []*node
 	nodeCounter int
 	hangNodes   int
 }
@@ -98,7 +98,7 @@ type graph struct {
 type node struct {
 	id             int
 	hierarchyLevel int
-	childs         []node
+	childs         []*node
 	parent         *node
 }
 
@@ -108,17 +108,17 @@ func buildGraph(m, N int) (*graph, int) {
 			node{
 				1,
 				0,
-				make([]node, 0, 0),
+				make([]*node, 0, 0),
 				nil,
 			},
-			make([]node, 0, 0),
+			make([]*node, 0, 0),
 			1,
 			0,
 		}
 		ran, beg, prevLen, addedToLvl int
-		tempNode                      node
+		tempNode                      *node
 	)
-	gr.nodes = append(gr.nodes, gr.rootNode)
+	gr.nodes = append(gr.nodes, &gr.rootNode)
 	/*
 		Цикл, генерирующий новый уровень иерархии до тех пор,
 		пока количество узлов граца не будет > или = N
@@ -131,11 +131,11 @@ func buildGraph(m, N int) (*graph, int) {
 			for r := 0; r < ran; r++ { // генерация случайного кол-ва детей для i-того узла
 				gr.nodeCounter++
 				addedToLvl++
-				tempNode = node{
+				tempNode = &node{
 					gr.nodeCounter,
 					gr.nodes[i].hierarchyLevel + 1,
-					make([]node, 0, 0),
-					&gr.nodes[i],
+					make([]*node, 0, 0),
+					gr.nodes[i],
 				}
 				gr.nodes = append(gr.nodes, tempNode)
 				gr.nodes[i].childs = append(gr.nodes[i].childs, tempNode)
@@ -168,7 +168,6 @@ func buildGraph(m, N int) (*graph, int) {
 func (n *node) toString() string {
 	var s string
 	s += "(" + strconv.Itoa(n.id)
-	//s += strconv.Itoa(n.hierarchyLevel)
 	if n.parent != nil {
 		s += "-" + strconv.Itoa(n.parent.id)
 	} else {
