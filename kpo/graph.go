@@ -121,7 +121,7 @@ func buildGraph(m, N int) (*graph, int) {
 	gr.nodes = append(gr.nodes, &gr.rootNode)
 	/*
 		Цикл, генерирующий новый уровень иерархии до тех пор,
-		пока количество узлов граца не будет > или = N
+		пока количество узлов графа не будет > или = N
 	*/
 	for len(gr.nodes) < N {
 		prevLen = len(gr.nodes)
