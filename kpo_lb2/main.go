@@ -16,22 +16,9 @@ import (
 	Кол-во ошибок ∆Ni:    4 4 3 3 2 1 0
 */
 
-/*
-//enter Ni:
-fmt.Println("∆Ni:")
-for i := 0; i < len(Ni); i++ {
-	fmt.Scanf("%d", &Ni[i])
-}
-fmt.Println(Ni)
-*/
-
-func init() {}
-
 func main() {
 
 	eps := 0.00001
-
-	// 12 variant
 	Ni := make([]int, 7, 7)
 	Ni[0] = 4
 	Ni[1] = 4
@@ -41,7 +28,7 @@ func main() {
 	Ni[5] = 1
 	Ni[6] = 0
 
-	//b := [2]string{"Penn", "Teller"}
+	// test
 	//Ni := make([]int, 6,6)
 	//Ni[0] = 3
 	//Ni[1] = 4
@@ -56,31 +43,25 @@ func main() {
 	No := calc_No(K, 1, Ni)
 	fmt.Println(No)
 
-	// ∆ni расчетное :
 	fmt.Println()
 	var errorsLeft float64
-	// расчет массива точек кол-ва оствшихся ошибок
-	//arrY := make([]float64, 0, 0)
-	arrX := make([]float64, 0, 0)
+	// расчет точек кол-ва оствшихся ошибок
 	for i := 0; i < len(Ni); i++ {
 		fmt.Print("∆n")
 		fmt.Println(i, " = ", errorsLeftInDt(No, K, float64(i+1)))
 		errorsLeft += errorsLeftInDt(No, K, float64(i+1))
-
-		//arrY = append(arrY, errorsLeftInDt(No, K, float64(i+1)))
-		arrX = append(arrX, float64(i+1))
 	}
 	fmt.Println("Осталось ошибок: ", No-errorsLeft)
 
-	// упаковка массива точке исходных данных об ошибках в структуру для графика
+	// исходные данные для графика
 	initX := make([]float64, 0, 0)
 	initY := make([]float64, 0, 0)
 	for i := 0; i < len(Ni); i++ {
-		initX = append(initX, float64(i))
+		initX = append(initX, float64(i+1))
 		initY = append(initY, float64(Ni[i]))
 	}
 
-	// генерация массивов с решением модели и экстраполяции
+	// массивы с решением модели и экстраполяцией
 	extraX := make([]float64, 0, 0)
 	extraY := make([]float64, 0, 0)
 	for i := 0.0; i < 10; i += 0.01 {
@@ -102,7 +83,8 @@ func main() {
 
 	// нахождение коэффициэнтов линейной аппроксимации, уравнение прямой: y = ax + b
 	var a, b float64
-	lineApprox(&arrX, &Ni, &a, &b)
+	lineApprox(&initX, &Ni, &a, &b)
+	fmt.Println("a =", a, " b =", b)
 	lineApproaxPoints := make(plotter.XYs, 2, 2)
 	lineApproaxPoints[0].X = 0
 	lineApproaxPoints[1].X = 10
@@ -116,7 +98,6 @@ func main() {
 		*nevs,
 		news2,
 		lineApproaxPoints)
-
 }
 
 //линейная апроксимация xy[0] содержит иксы и [1] соответственно игрики
@@ -132,6 +113,7 @@ func lineApprox(x *[]float64, y *[]int, a, b *float64) {
 	*b = (float64(len(*x))*sxy - sx*sy) / (float64(len(*x))*sx2 - sx*sx)
 }
 
+// возвращает массив точек невязок
 func getNevsY(No, K, Dt float64, ni []int) *plotter.XYs {
 	pts := make(plotter.XYs, len(ni))
 	for i := 0; i < len(ni); i++ {
@@ -141,6 +123,7 @@ func getNevsY(No, K, Dt float64, ni []int) *plotter.XYs {
 	return &pts
 }
 
+// расчет кол-ва оставшихся ошибок No * e^(-K∆t) * K
 func errorsLeftInDt(No, K, Dt float64) float64 {
 	return No * math.Pow(math.E, -K*Dt) * K
 }
@@ -173,10 +156,8 @@ func difference(k float64, ni []int) float64 {
 	return leftEquationPart(k, ni) - rightEquationPart(k, ni)
 }
 
-/*
-	метод деления отрезка пополам, возвращает K и кол-во итераций поиска
-	func difference здесь играет роль искомого F(k)
-*/
+//метод деления отрезка пополам, возвращает K и кол-во итераций поиска
+//func difference здесь играет роль искомого F(k)
 func halfLengthMethod(a, b, eps float64, ni []int) (float64, int) {
 	fmt.Println("Метод деления отрезка пополам:")
 	var (
@@ -211,7 +192,6 @@ func calc_No(k, Dt float64, ni []int) float64 {
 }
 
 func renderPlot(modelSolve, initData, nevs, nevs2, lineApproaxPoints plotter.XYs) {
-	// Create a new plot, set its title and axis labels.
 	p, err := plot.New()
 	if err != nil {
 		panic(err)
@@ -219,26 +199,29 @@ func renderPlot(modelSolve, initData, nevs, nevs2, lineApproaxPoints plotter.XYs
 	p.Title.Text = "Модель Джелинского-Моранды"
 	p.X.Label.Text = "t"
 	p.Y.Label.Text = "∆n"
-	// Draw a grid behind the data
 	p.Add(plotter.NewGrid())
+
 	// решение модели с экстраполяцией
 	line, err := plotter.NewLine(modelSolve)
 	if err != nil {
 		panic(err)
 	}
 	line.LineStyle.Color = color.RGBA{B: 255, A: 255}
+
 	// апроксимация прямой
 	lineApproax, err := plotter.NewLine(lineApproaxPoints)
 	if err != nil {
 		panic(err)
 	}
 	lineApproax.LineStyle.Color = color.RGBA{R: 255, A: 255}
+
 	// исходные данные
 	dots, err := plotter.NewScatter(initData)
 	if err != nil {
 		panic(err)
 	}
 	dots.Color = color.RGBA{R: 255, A: 255}
+
 	// значения невязок
 	nev, err := plotter.NewScatter(nevs)
 	if err != nil {
@@ -246,6 +229,7 @@ func renderPlot(modelSolve, initData, nevs, nevs2, lineApproaxPoints plotter.XYs
 	}
 	nev.Shape = draw.PyramidGlyph{}
 	nev.Color = color.RGBA{G: 255, A: 255}
+
 	// квадраты невязок
 	nev2, err := plotter.NewScatter(nevs2)
 	if err != nil {
@@ -254,7 +238,7 @@ func renderPlot(modelSolve, initData, nevs, nevs2, lineApproaxPoints plotter.XYs
 	nev2.Shape = draw.BoxGlyph{}
 	nev2.Color = color.RGBA{B: 255, A: 255}
 
-	// Add the plotters to the p, with a legend
+	// добавление графиков и их легенд
 	p.Add(line, dots, nev, nev2, lineApproax)
 	p.Legend.Add("Решение моджели", line)
 	p.Legend.Add("Апроксимация решения прямой", lineApproax)
@@ -262,12 +246,13 @@ func renderPlot(modelSolve, initData, nevs, nevs2, lineApproaxPoints plotter.XYs
 	p.Legend.Add("Значения невязок", nev)
 	p.Legend.Add("Квадраты невязок", nev2)
 
-	// Save the plot to a PNG file.
+	// сохранение графика в PNG файл
 	if err := p.Save(10*vg.Inch, 10*vg.Inch, "points.png"); err != nil {
 		panic(err)
 	}
 }
 
+// создание структуры plotter.XYs с точками для отрисовки графика
 func packArrayForPlot(arrX, arrY *[]float64) *plotter.XYs {
 	pts := make(plotter.XYs, len(*arrX))
 	for i := range *arrX {
